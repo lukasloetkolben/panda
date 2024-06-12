@@ -4,6 +4,7 @@
 // include the safety policies.
 #include "safety/safety_defaults.h"
 #include "safety/safety_honda.h"
+#include "safety/safety_rivian.h"
 #include "safety/safety_toyota.h"
 #include "safety/safety_tesla.h"
 #include "safety/safety_gm.h"
@@ -51,6 +52,7 @@
 #define SAFETY_FAW 26U
 #define SAFETY_BODY 27U
 #define SAFETY_HYUNDAI_CANFD 28U
+#define SAFETY_RIVIAN 29U
 
 uint16_t current_safety_mode = SAFETY_SILENT;
 uint16_t current_safety_param = 0;
