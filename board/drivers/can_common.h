@@ -208,6 +208,13 @@ void ignition_can_hook(CANPacket_t *to_push) {
       ignition_can_cnt = 0U;
     }
 
+    // Rivian exception
+    if ((addr == 0x38B) && (len == 4)) {
+      // ESPiB
+      ignition_can = ((GET_BYTE(to_push, 1) & 0x10U) >> 4) != 0U;
+      ignition_can_cnt = 0U;
+    }
+
     // Tesla exception
     if ((addr == 0x348) && (len == 8)) {
       // GTW_status

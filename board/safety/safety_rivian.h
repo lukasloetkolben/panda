@@ -16,8 +16,7 @@ const LongitudinalLimits RIVIAN_LONG_LIMITS = {
   .inactive_accel = 375,  // 0. m/s^2
 };
 
-const int RIVIAN_FLAG_MODEL3_Y = 1;
-const int RIVIAN_FLAG_LONGITUDINAL_CONTROL = 2;
+const int FLAG_RIVIAN_LONG_CONTROL = 1;
 
 const CanMsg RIVIAN_TX_MSGS[] = {
   {0x488, 0, 4},  // DAS_steeringControl
@@ -34,14 +33,6 @@ RxCheck rivian_rx_checks[] = {
   {.msg = {{0x286, 0, 8, .frequency = 10U}, { 0 }, { 0 }}},   // DI_state (acc state)
   {.msg = {{0x311, 0, 7, .frequency = 10U}, { 0 }, { 0 }}},   // UI_warning (buckle switch & doors)
   {.msg = {{0x3f5, 1, 8, .frequency = 10U}, { 0 }, { 0 }}},   // ID3F5VCFRONT_lighting (blinkers)
-};
-
-RxCheck rivian_pt_rx_checks[] = {
-  {.msg = {{0x106, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},  // DI_torque1
-  {.msg = {{0x116, 0, 6, .frequency = 100U}, { 0 }, { 0 }}},  // DI_torque2
-  {.msg = {{0x1f8, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},   // BrakeMessage
-  {.msg = {{0x2bf, 2, 8, .frequency = 25U}, { 0 }, { 0 }}},   // DAS_control
-  {.msg = {{0x256, 0, 8, .frequency = 10U}, { 0 }, { 0 }}},   // DI_state
 };
 
 bool rivian_longitudinal = false;
@@ -97,7 +88,6 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
 
   generic_rx_checks((addr == 0x488) && (bus == 0));
   generic_rx_checks((addr == 0x2b9) && (bus == 0));
-
 }
 
 
@@ -187,7 +177,7 @@ static int rivian_fwd_hook(int bus_num, int addr) {
 }
 
 static safety_config rivian_init(uint16_t param) {
-  rivian_longitudinal = GET_FLAG(param, RIVIAN_FLAG_LONGITUDINAL_CONTROL);
+  rivian_longitudinal = GET_FLAG(param, FLAG_RIVIAN_LONG_CONTROL);
   rivian_stock_aeb = false;
 
   safety_config ret;
