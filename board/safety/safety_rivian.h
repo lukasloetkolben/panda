@@ -69,7 +69,7 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
 
     // Cruise state
     if(addr == 0x162) {
-      bool cruise_engaged = (((GET_BYTE(to_push, 2) & 0x18U) >> 3) == 1U);
+      bool cruise_engaged = (((GET_BYTE(to_push, 4) & 0x1CU) >> 2) == 1U);
       pcm_cruise_check(cruise_engaged);
     }
   }
