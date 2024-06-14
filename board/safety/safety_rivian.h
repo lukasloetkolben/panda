@@ -28,7 +28,7 @@ RxCheck rivian_rx_checks[] = {
   {.msg = {{0x38b, 0, 4, .frequency = 50U}, { 0 }, { 0 }}},   // ESPiB1 (speed)
   {.msg = {{0x150, 0, 7, .frequency = 50U}, { 0 }, { 0 }}},   // VDM_PropStatus (gas pedal)
   {.msg = {{0x38f, 0, 6, .frequency = 50U}, { 0 }, { 0 }}},   // iBESP2 (brakes)
-  {.msg = {{0x162, 0, 6, .frequency = 100U}, { 0 }, { 0 }}},  // VDM_AdasSts (cruise state)
+  {.msg = {{0x162, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},  // VDM_AdasSts (cruise state)
   {.msg = {{0x101, 2, 8, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_AebRequest (aeb)
   {.msg = {{0x160, 2, 5, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_longitudinalRequest (cruise control)
 };
