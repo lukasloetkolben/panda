@@ -113,7 +113,7 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
       }
 
       // Don't allow any acceleration limits above the safety limits
-      int raw_accel = (GET_BYTE(to_send, 2) << 3) | (GET_BYTE(to_send, 3) >> 5);
+      int raw_accel = (((GET_BYTE(to_send, 2) << 3) | (GET_BYTE(to_send, 3) >> 5)) * 10U) - 1024U;
       violation |= longitudinal_accel_checks(raw_accel, RIVIAN_LONG_LIMITS);
     } else {
       violation = true;
