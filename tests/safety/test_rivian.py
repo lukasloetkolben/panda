@@ -21,36 +21,31 @@ class TestRivianSafety(common.PandaCarSafetyTest):
         raise unittest.SkipTest
 
     def _speed_msg(self, speed):
-        values = {"ESP_vehicleSpeed": speed / 0.277778}
-        return self.packer.make_can_msg_panda("ESP_B", 0, values)
+        values = {"ESPiB1_VehicleSpeed": speed}
+        return self.packer.make_can_msg_panda("ESPiB1", 0, values)
 
     def _user_brake_msg(self, brake):
-        values = {"IBST_driverBrakeApply": 2 if brake else 1}
-        return self.packer.make_can_msg_panda("IBST_status", 0, values)
+        values = {"iBESP2_BrakePedalApplied": 1 if brake else 0}
+        return self.packer.make_can_msg_panda("iBESP2", 0, values)
 
     def _user_gas_msg(self, gas):
-        values = {"DI_accelPedalPos": gas}
-        return self.packer.make_can_msg_panda("DI_systemStatus", 0, values)
+        values = {"VDM_AcceleratorPedalPosition": gas}
+        return self.packer.make_can_msg_panda("VDM_PropStatus", 0, values)
 
     def _control_lever_cmd(self, command):
         values = {"SCCM_rightStalkStatus": command}
         return self.packer_vehicle.make_can_msg_panda("SCCM_rightStalk", 1, values)
 
     def _pcm_status_msg(self, enable):
-        values = {"DI_cruiseState": 2 if enable else 0}
-        return self.packer.make_can_msg_panda("DI_state", 0, values)
+        values = {"VDM_AdasDriverModeStatus": 1 if enable else 0}
+        return self.packer.make_can_msg_panda("VDM_AdasSts", 0, values)
 
-    def _long_control_msg(self, set_speed, acc_val=0, jerk_limits=(0, 0), accel_limits=(0, 0), aeb_event=0, bus=0):
+    def _long_control_msg(self, acc_val, accel, bus=0):
         values = {
-            "DAS_setSpeed": set_speed,
-            "DAS_accState": acc_val,
-            "DAS_aebEvent": aeb_event,
-            "DAS_jerkMin": jerk_limits[0],
-            "DAS_jerkMax": jerk_limits[1],
-            "DAS_accelMin": accel_limits[0],
-            "DAS_accelMax": accel_limits[1],
+            "ACM_AccelerationRequest": accel,
+            "ACM_longInterfaceEnable": acc_val,
         }
-        return self.packer.make_can_msg_panda("DAS_control", bus, values)
+        return self.packer.make_can_msg_panda("ACM_longitudinalRequest", bus, values)
 
 
 class TestRivianSteeringSafety(TestRivianSafety):
@@ -72,12 +67,13 @@ class TestRivianSteeringSafety(TestRivianSafety):
         self.safety.init_tests()
 
     def _angle_cmd_msg(self, angle: float, enabled: bool):
-        values = {"DAS_steeringAngleRequest": angle, "DAS_steeringControlType": 1 if enabled else 0}
-        return self.packer.make_can_msg_panda("DAS_steeringControl", 0, values)
+        values = {"ACM_SteeringAngleRequest": angle,
+                  "ACM_EacEnabled": 1 if enabled else 0}
+        return self.packer.make_can_msg_panda("ACM_SteeringControl", 0, values)
 
     def _angle_meas_msg(self, angle: float):
-        values = {"EPAS3S_internalSAS": angle}
-        return self.packer.make_can_msg_panda("EPAS3S_sysStatus", 0, values)
+        values = {"EPAS_InternalSas": angle}
+        return self.packer.make_can_msg_panda("EPAS_AdasStatus", 0, values)
 
     def test_acc_buttons(self):
         """
