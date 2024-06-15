@@ -11,9 +11,9 @@ const SteeringLimits RIVIAN_STEERING_LIMITS = {
 };
 
 const LongitudinalLimits RIVIAN_LONG_LIMITS = {
-  .max_accel = 425,       // 2. m/s^2
-  .min_accel = 287,       // -3.52 m/s^2
-  .inactive_accel = 375,  // 0. m/s^2
+  .max_accel = 200,       // 2. m/s^2
+  .min_accel = -350,       // -3.50 m/s^2
+  .inactive_accel = 0,
 };
 
 const int FLAG_RIVIAN_LONG_CONTROL = 1;
@@ -113,7 +113,7 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
       }
 
       // Don't allow any acceleration limits above the safety limits
-      int raw_accel = (((GET_BYTE(to_send, 2) << 3) | (GET_BYTE(to_send, 3) >> 5)) * 10U) - 1024U;
+      int raw_accel = ((GET_BYTE(to_send, 2) << 3) | (GET_BYTE(to_send, 3) >> 5)) - 1024U;
       violation |= longitudinal_accel_checks(raw_accel, RIVIAN_LONG_LIMITS);
     } else {
       violation = true;
