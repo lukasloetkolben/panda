@@ -120,14 +120,6 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
     }
   }
 
-  if (addr == 0x229){ // todo button cmds
-    // Only the "Half up" and "Neutral" positions are permitted for sending stalk signals.
-    int control_lever_status = ((GET_BYTE(to_send, 1) & 0x70U) >> 4);
-    if ((control_lever_status > 1)) {
-      violation = true;
-    }
-  }
-
   if (violation) {
     tx = false;
   }
