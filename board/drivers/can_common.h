@@ -209,9 +209,9 @@ void ignition_can_hook(CANPacket_t *to_push) {
     }
 
     // Rivian exception
-    if ((addr == 0x38B) && (len == 6)) {
-      // ESPiB
-      ignition_can = GET_BIT(to_push, 12U);
+    if ((addr == 0x152) && (len == 8)) {
+      // VDM_OutputSignals
+      ignition_can = GET_BIT(to_push, 60U);
       ignition_can_cnt = 0U;
     }
 
