@@ -1,12 +1,12 @@
 const SteeringLimits RIVIAN_STEERING_LIMITS = {
   .angle_deg_to_can = 10,
   .angle_rate_up_lookup = {
-    {5., 25., 25.},
-    {0.2, 0.15, 0.15}
+    {0., 5., 15.},
+    {5., .8, .15}
   },
   .angle_rate_down_lookup = {
-    {5., 25., 25.},
-    {0.3, 0.3, 0.2}
+    {0., 5., 15.},
+    {5., 3.5, .4}
   },
 };
 
