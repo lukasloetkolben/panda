@@ -19,6 +19,7 @@ const LongitudinalLimits RIVIAN_LONG_LIMITS = {
 const int FLAG_RIVIAN_LONG_CONTROL = 1;
 
 const CanMsg RIVIAN_TX_MSGS[] = {
+  {0x100, 0, 8},  // ACM_Status
   {0x110, 0, 8},  // ACM_SteeringControl
   {0x160, 0, 5},  // ACM_longitudinalRequest
 };
@@ -81,6 +82,7 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
     }
   }
 
+  generic_rx_checks((addr == 0x100) && (bus == 0));
   generic_rx_checks((addr == 0x110) && (bus == 0));
   generic_rx_checks((addr == 0x160) && (bus == 0));
 }
@@ -137,6 +139,10 @@ static int rivian_fwd_hook(int bus_num, int addr) {
   if(bus_num == 2) {
     bool block_msg = false;
     if (addr == 0x110) {
+      block_msg = true;
+    }
+
+    if (addr == 0x100) {
       block_msg = true;
     }
 
