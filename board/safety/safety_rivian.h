@@ -19,7 +19,7 @@ const LongitudinalLimits RIVIAN_LONG_LIMITS = {
 const int FLAG_RIVIAN_LONG_CONTROL = 1;
 
 const CanMsg RIVIAN_TX_MSGS[] = {
-  {0x120, 0, 8},  // acm_lkaHbaCmd
+  {0x120, 0, 8},  // ACM_lkaHbaCmd
   {0x100, 0, 8},  // ACM_Status
   {0x110, 0, 8},  // ACM_SteeringControl
   {0x160, 0, 5},  // ACM_longitudinalRequest
@@ -139,15 +139,24 @@ static int rivian_fwd_hook(int bus_num, int addr) {
 
   if(bus_num == 2) {
     bool block_msg = false;
+
+    // ACM_SteeringControl
     if (addr == 0x110) {
       block_msg = true;
     }
 
+    // ACM_Status
     if (addr == 0x100) {
       block_msg = true;
     }
 
+    // ACM_longitudinalRequest
     if (rivian_longitudinal && (addr == 0x160) && !rivian_stock_aeb) {
+      block_msg = true;
+    }
+
+    // ACM_lkaHbaCmd
+    if (addr == 0x120) {
       block_msg = true;
     }
 
