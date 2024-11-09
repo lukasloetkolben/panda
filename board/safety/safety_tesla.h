@@ -20,7 +20,6 @@ static void tesla_rx_hook(const CANPacket_t *to_push) {
     if(addr == 0x257){
       // Vehicle speed: ((val * 0.08) - 40) * KPH_TO_MPS
       float speed = (((((GET_BYTE(to_push, 2)) << 4) | (GET_BYTE(to_push, 1) >> 4)) * 0.08) - 40) * 0.277778;
-      vehicle_moving = ABS(speed) > 0.1;
       UPDATE_VEHICLE_SPEED(speed);
     }
 
@@ -34,7 +33,7 @@ static void tesla_rx_hook(const CANPacket_t *to_push) {
       brake_pressed = (GET_BYTE(to_push, 2) & 0x03U)  == 2U;
     }
 
-    // Cruise state
+    // Cruise state & standstill
     if(addr == 0x286) {
       int cruise_state = ((GET_BYTE(to_push, 1) << 1 ) >> 5);
       bool cruise_engaged = (cruise_state == 2) ||  // ENABLED
@@ -42,6 +41,8 @@ static void tesla_rx_hook(const CANPacket_t *to_push) {
                             (cruise_state == 4) ||  // OVERRIDE
                             (cruise_state == 6) ||  // PRE_FAULT
                             (cruise_state == 7);    // PRE_CANCEL
+
+      vehicle_moving = cruise_state != 3; // STANDSTILL
       pcm_cruise_check(cruise_engaged);
     }
   }
