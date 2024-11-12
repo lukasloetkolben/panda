@@ -22,6 +22,7 @@ const int FLAG_RIVIAN_LONG_CONTROL = 1;
 const CanMsg RIVIAN_TX_MSGS[] = {
   {0x110, 0, 8},  // ACM_SteeringControl
   {0x160, 0, 5},  // ACM_longitudinalRequest
+  {0x120, 0, 8},  // ACM_lkaHbaCmd
 };
 
 RxCheck rivian_rx_checks[] = {
@@ -145,6 +146,11 @@ static int rivian_fwd_hook(int bus_num, int addr) {
 
     // ACM_longitudinalRequest
     if (rivian_longitudinal && (addr == 0x160) && !rivian_stock_aeb) {
+      block_msg = true;
+    }
+
+    // ACM_lkaHbaCmd
+    if (addr == 0x120) {
       block_msg = true;
     }
 
