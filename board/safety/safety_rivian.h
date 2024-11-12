@@ -138,6 +138,13 @@ static int rivian_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
   bool block_msg = false;
 
+  if(bus_num == 0) {
+
+    if(!block_msg) {
+      bus_fwd = 2;
+    }
+  }
+
   if(bus_num == 2) {
     // ACM_SteeringControl
     if (addr == 0x110) {
