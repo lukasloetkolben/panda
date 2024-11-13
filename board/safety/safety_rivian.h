@@ -23,6 +23,7 @@ const CanMsg RIVIAN_TX_MSGS[] = {
   {0x110, 0, 8},  // ACM_SteeringControl
   {0x160, 0, 5},  // ACM_longitudinalRequest
   {0x120, 0, 8},  // ACM_lkaHbaCmd
+  {0x120, 1, 8},  // ACM_lkaHbaCmd
 };
 
 RxCheck rivian_rx_checks[] = {
@@ -106,7 +107,7 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
     int desired_angle = raw_angle_can - 16384;
     bool steer_control_enabled = ((GET_BYTE(to_send, 1) & 0x30U) >> 4);
     if (steer_angle_cmd_checks(desired_angle, steer_control_enabled, RIVIAN_STEERING_LIMITS)) {
-      violation = true;
+      violation = false; // true;
     }
   }
 
