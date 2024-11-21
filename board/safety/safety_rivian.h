@@ -74,7 +74,7 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
 
     // Cruise state
     if(addr == 0x100) {
-      bool cruise_engaged = (((GET_BYTE(to_push, 2)) >> 5) == 2U);
+      bool cruise_engaged = (((GET_BYTE(to_push, 2)) >> 5) == 1U);
       pcm_cruise_check(cruise_engaged);
     }
 
@@ -103,7 +103,7 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
     // We use 1/10 deg as a unit here
     int raw_angle_can = (((GET_BYTE(to_send, 2)) << 7) | ((GET_BYTE(to_send, 3) & 0xfeU) >> 1));
     int desired_angle = raw_angle_can - 16384;
-    bool steer_control_enabled = ((GET_BYTE(to_send, 1) & 0x30U) >> 4);
+    bool steer_control_enabled = ((GET_BYTE(to_send, 1) & 0x30U) >> 4) == 1U;
     if (steer_angle_cmd_checks(desired_angle, steer_control_enabled, RIVIAN_STEERING_LIMITS)) {
       violation = false; // true;
     }
