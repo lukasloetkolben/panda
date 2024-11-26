@@ -162,6 +162,10 @@ static int tesla_fwd_hook(int bus_num, int addr) {
       block_msg = true;
     }
 
+    if (addr == 0x39b) {
+      block_msg = true;
+    }
+
     if(!block_msg) {
       bus_fwd = 0;
     }
@@ -177,6 +181,7 @@ static safety_config tesla_init(uint16_t param) {
     {0x488, 0, 4},  // DAS_steeringControl
     {0x2b9, 0, 8},  // DAS_control
     {0x27D, 0, 3},  // APS_eacMonitor
+    {0x39b, 0, 8},  // DAS_status
   };
 
   tesla_longitudinal = GET_FLAG(param, TESLA_FLAG_LONGITUDINAL_CONTROL);
