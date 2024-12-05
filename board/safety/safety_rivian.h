@@ -3,11 +3,11 @@ const SteeringLimits RIVIAN_STEERING_LIMITS = {
   .max_angle_error = 2,
   .angle_rate_up_lookup = {
     {0., 15.},
-    {.4, .4}
+    {.4, .1}
   },
   .angle_rate_down_lookup = {
     {0., 15.},
-    {.4, .4}
+    {.4, .1}
   },
 };
 
