@@ -1,15 +1,14 @@
 const SteeringLimits RIVIAN_STEERING_LIMITS = {
-  .angle_deg_to_can = 10,
-  .max_angle_error = 2,
-  .angle_rate_up_lookup = {
-    {0., 15.},
-    {.4, .1}
-  },
-  .angle_rate_down_lookup = {
-    {0., 15.},
-    {.4, .1}
-  },
+  .max_steer = 270,
+  .max_rt_delta = 225,           // 6 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 150 ; 150 * 1.5 for safety pad = 225
+  .max_rt_interval = 250000,     // 250ms between real time checks
+  .max_rate_up = 6,              // 6.0 Nm/s
+  .max_rate_down = 6,            // 6.0 Nm/s
+  .driver_torque_allowance = 15,
+  .driver_torque_factor = 1,
+  .type = TorqueDriverLimited,
 };
+
 
 const LongitudinalLimits RIVIAN_LONG_LIMITS = {
   .max_accel = 200,       // 2. m/s^2
@@ -20,9 +19,9 @@ const LongitudinalLimits RIVIAN_LONG_LIMITS = {
 const int FLAG_RIVIAN_LONG_CONTROL = 1;
 
 const CanMsg RIVIAN_TX_MSGS[] = {
-  {0x110, 0, 8},  // ACM_SteeringControl
-  {0x160, 0, 5},  // ACM_longitudinalRequest
-  {0x100, 0, 8}, // ACM_Status
+  {0x120, 0, 8}, // ACM_lkaHbaCmd
+  {0x160, 0, 5}, // ACM_longitudinalRequest
+  // {0x380, 2, 5}, // EPAS_SystemStatus
 };
 
 RxCheck rivian_rx_checks[] = {
@@ -140,20 +139,19 @@ static int rivian_fwd_hook(int bus_num, int addr) {
 
   if(bus_num == 0) {
 
+    // EPAS_SystemStatus
+    // if (addr == 0x380) {
+    //   block_msg = true;
+    // }
+
     if(!block_msg) {
       bus_fwd = 2;
     }
   }
 
   if(bus_num == 2) {
-    // ACM_SteeringControl
-    if (addr == 0x110) {
-      block_msg = true;
-    }
-
-
-    // ACM_Status
-    if (addr == 0x100) {
+    // ACM_lkaHbaCmd
+    if (addr == 0x120) {
       block_msg = true;
     }
 
