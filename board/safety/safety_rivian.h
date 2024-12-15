@@ -1,9 +1,9 @@
 const SteeringLimits RIVIAN_STEERING_LIMITS = {
-  .max_steer = 270,
-  .max_rt_delta = 225,           // 6 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 150 ; 150 * 1.5 for safety pad = 225
+  .max_steer = 350,
+  .max_rt_delta = 300,           // 8 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 200 ; 200 * 1.5 for safety pad = 300
   .max_rt_interval = 250000,     // 250ms between real time checks
-  .max_rate_up = 6,              // 6.0 Nm/s
-  .max_rate_down = 6,            // 6.0 Nm/s
+  .max_rate_up = 8,              // 6.0 Nm/s
+  .max_rate_down = 8,            // 6.0 Nm/s
   .driver_torque_allowance = 15,
   .driver_torque_factor = 1,
   .type = TorqueDriverLimited,
@@ -21,7 +21,7 @@ const int FLAG_RIVIAN_LONG_CONTROL = 1;
 const CanMsg RIVIAN_TX_MSGS[] = {
   {0x120, 0, 8}, // ACM_lkaHbaCmd
   {0x160, 0, 5}, // ACM_longitudinalRequest
-  // {0x380, 2, 5}, // EPAS_SystemStatus
+  {0x100, 1, 8}, // ACM_Status
 };
 
 RxCheck rivian_rx_checks[] = {
@@ -98,14 +98,12 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
   bool violation = false;
 
   // Steering control
-  if(addr == 0x110) {
-    // angle: (0.1 * val) - 1638.35 in deg.
-    // We use 1/10 deg as a unit here
-    int raw_angle_can = (((GET_BYTE(to_send, 2)) << 7) | ((GET_BYTE(to_send, 3) & 0xfeU) >> 1));
-    int desired_angle = raw_angle_can - 16384;
-    bool steer_control_enabled = ((GET_BYTE(to_send, 1) & 0x30U) >> 4) == 1U;
-    if (steer_angle_cmd_checks(desired_angle, steer_control_enabled, RIVIAN_STEERING_LIMITS)) {
-      violation = false; // true;
+  if (addr == 0x120) {
+    int desired_torque = ((GET_BYTES(to_send, 2, 3) >> 16) & 0x7ffU) - 1024U;
+    bool steer_req = GET_BIT(to_send, 28U);
+
+    if (steer_torque_cmd_checks(desired_torque, steer_req, RIVIAN_STEERING_LIMITS)) {
+        violation = false; // true;
     }
   }
 
@@ -138,12 +136,6 @@ static int rivian_fwd_hook(int bus_num, int addr) {
   bool block_msg = false;
 
   if(bus_num == 0) {
-
-    // EPAS_SystemStatus
-    // if (addr == 0x380) {
-    //   block_msg = true;
-    // }
-
     if(!block_msg) {
       bus_fwd = 2;
     }
