@@ -2,8 +2,8 @@ const SteeringLimits RIVIAN_STEERING_LIMITS = {
   .max_steer = 350,
   .max_rt_delta = 300,           // 8 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 200 ; 200 * 1.5 for safety pad = 300
   .max_rt_interval = 250000,     // 250ms between real time checks
-  .max_rate_up = 8,              // 6.0 Nm/s
-  .max_rate_down = 8,            // 6.0 Nm/s
+  .max_rate_up = 8,              // 8.0 Nm/s
+  .max_rate_down = 8,            // 8.0 Nm/s
   .driver_torque_allowance = 15,
   .driver_torque_factor = 1,
   .type = TorqueDriverLimited,
