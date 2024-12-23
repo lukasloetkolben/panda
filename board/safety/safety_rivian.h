@@ -21,7 +21,6 @@ const int FLAG_RIVIAN_LONG_CONTROL = 1;
 const CanMsg RIVIAN_TX_MSGS[] = {
   {0x120, 0, 8}, // ACM_lkaHbaCmd
   {0x160, 0, 5}, // ACM_longitudinalRequest
-  {0x100, 1, 8}, // ACM_Status
 };
 
 RxCheck rivian_rx_checks[] = {
@@ -85,10 +84,10 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (rivian_longitudinal) {
-      generic_rx_checks((addr == 0x110) && (bus == 0));
+      generic_rx_checks((addr == 0x160) && (bus == 0));
   }
 
-  generic_rx_checks((addr == 0x160) && (bus == 0));
+  generic_rx_checks((addr == 0x120) && (bus == 0));
 }
 
 
@@ -103,7 +102,7 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
     bool steer_req = GET_BIT(to_send, 28U);
 
     if (steer_torque_cmd_checks(desired_torque, steer_req, RIVIAN_STEERING_LIMITS)) {
-        violation = false; // true;
+        violation = true;
     }
   }
 
