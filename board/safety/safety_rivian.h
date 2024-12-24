@@ -2,8 +2,8 @@ const SteeringLimits RIVIAN_STEERING_LIMITS = {
   .max_steer = 350,
   .max_rt_delta = 300,           // 8 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 200 ; 200 * 1.5 for safety pad = 300
   .max_rt_interval = 250000,     // 250ms between real time checks
-  .max_rate_up = 8,              // 8.0 Nm/s
-  .max_rate_down = 8,            // 8.0 Nm/s
+  .max_rate_up = 8,
+  .max_rate_down = 8,
   .driver_torque_allowance = 15,
   .driver_torque_factor = 1,
   .type = TorqueDriverLimited,
@@ -30,7 +30,6 @@ RxCheck rivian_rx_checks[] = {
   {.msg = {{0x38f, 0, 6, .frequency = 50U}, { 0 }, { 0 }}},   // iBESP2 (brakes)
   {.msg = {{0x162, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},  // VDM_AdasSts
   {.msg = {{0x100, 2, 8, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_Status (cruise state)
-  {.msg = {{0x101, 2, 8, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_AebRequest (aeb)
   {.msg = {{0x160, 2, 5, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_longitudinalRequest (cruise control)
 };
 
@@ -42,6 +41,11 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
 
   if(bus == 0) {
+    // Driver torque
+    if (addr == 0x380) {
+      int torque_driver_new = ((((GET_BYTE(to_push, 2) << 4) | (GET_BYTE(to_push, 3) >> 4)) * 0.1) - 205);
+      update_sample(&torque_driver, torque_driver_new);
+    }
 
     // Steering angle
     if(addr == 0x390) {
@@ -70,16 +74,10 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (bus == 2) {
-
     // Cruise state
     if(addr == 0x100) {
       bool cruise_engaged = (((GET_BYTE(to_push, 2)) >> 5) != 0U);
       pcm_cruise_check(cruise_engaged);
-    }
-
-    if (rivian_longitudinal && (addr == 0x101)) {
-      // "AEB_ACTIVE"
-      rivian_stock_aeb = GET_BIT(to_push, 47U);
     }
   }
 
@@ -94,7 +92,6 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
 static bool rivian_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
-  bool violation = false;
 
   // Steering control
   if (addr == 0x120) {
@@ -102,29 +99,20 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
     bool steer_req = GET_BIT(to_send, 28U);
 
     if (steer_torque_cmd_checks(desired_torque, steer_req, RIVIAN_STEERING_LIMITS)) {
-        violation = true;
+       tx = false;
     }
   }
 
   // Longitudinal control
   if(addr == 0x160) {
     if (rivian_longitudinal) {
-
-      // Don't send messages when the stock AEB system is active
-      if (rivian_stock_aeb) {
-        violation = true;
-      }
-
-      // Don't allow any acceleration limits above the safety limits
       int raw_accel = ((GET_BYTE(to_send, 2) << 3) | (GET_BYTE(to_send, 3) >> 5)) - 1024U;
-      violation |= longitudinal_accel_checks(raw_accel, RIVIAN_LONG_LIMITS);
+      if (longitudinal_accel_checks(raw_accel, RIVIAN_LONG_LIMITS)) {
+        tx = false;
+      }
     } else {
-      violation = true;
+       tx = false;
     }
-  }
-
-  if (violation) {
-    tx = false;
   }
 
   return tx;
@@ -147,7 +135,7 @@ static int rivian_fwd_hook(int bus_num, int addr) {
     }
 
     // ACM_longitudinalRequest
-    if (rivian_longitudinal && (addr == 0x160) && !rivian_stock_aeb) {
+    if (rivian_longitudinal && (addr == 0x160)) {
       block_msg = true;
     }
 
@@ -161,7 +149,6 @@ static int rivian_fwd_hook(int bus_num, int addr) {
 
 static safety_config rivian_init(uint16_t param) {
   rivian_longitudinal = GET_FLAG(param, FLAG_RIVIAN_LONG_CONTROL);
-  rivian_stock_aeb = false;
 
   safety_config ret;
   ret = BUILD_SAFETY_CFG(rivian_rx_checks, RIVIAN_TX_MSGS);
