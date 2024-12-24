@@ -98,7 +98,7 @@ static bool rivian_tx_hook(const CANPacket_t *to_send) {
 
   // Steering control
   if (addr == 0x120) {
-    int desired_torque = ((GET_BYTE(to_push, 2) << 3U) | (GET_BYTE(to_push, 3) >> 5U)) - 1024U;
+    int desired_torque = ((GET_BYTE(to_send, 2) << 3U) | (GET_BYTE(to_send, 3) >> 5U)) - 1024U;
     bool steer_req = GET_BIT(to_send, 28U);
 
     if (steer_torque_cmd_checks(desired_torque, steer_req, RIVIAN_STEERING_LIMITS)) {
