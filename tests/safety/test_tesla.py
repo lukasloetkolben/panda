@@ -9,12 +9,13 @@ MSG_DAS_steeringControl = 0x488
 MSG_APS_eacMonitor = 0x27d
 MSG_DAS_Control = 0x2b9
 
-class TestTeslaSafety(common.PandaCarSafetyTest):
+class TestTeslaSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTest):
   RELAY_MALFUNCTION_ADDRS = {0: (MSG_DAS_steeringControl, MSG_APS_eacMonitor)}
   FWD_BLACKLISTED_ADDRS = {2: [MSG_DAS_steeringControl, MSG_APS_eacMonitor]}
   TX_MSGS = [[MSG_DAS_steeringControl, 0], [MSG_APS_eacMonitor, 0], [MSG_DAS_Control, 0]]
 
-  STANDSTILL_THRESHOLD = 0.1
+  STANDSTILL_THRESHOLD = 0
+  GAS_PRESSED_THRESHOLD = 0
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   # Angle control limits
@@ -36,7 +37,7 @@ class TestTeslaSafety(common.PandaCarSafetyTest):
     return self.packer.make_can_msg_panda("IBST_status", 0, values)
 
   def _speed_msg(self, speed):
-    values = {"DI_vehicleSpeed": speed / 0.277778}
+    values = {"DI_vehicleSpeed": speed * 3.6}
     return self.packer.make_can_msg_panda("DI_speed", 0, values)
 
   def _vehicle_moving_msg(self, speed: float):
