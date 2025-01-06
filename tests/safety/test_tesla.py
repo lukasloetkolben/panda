@@ -11,12 +11,11 @@ MSG_DAS_Control = 0x2b9
 
 class TestTeslaSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTest):
   RELAY_MALFUNCTION_ADDRS = {0: (MSG_DAS_steeringControl, MSG_APS_eacMonitor)}
-  FWD_BLACKLISTED_ADDRS = {2: [MSG_DAS_steeringControl, MSG_APS_eacMonitor]}
   TX_MSGS = [[MSG_DAS_steeringControl, 0], [MSG_APS_eacMonitor, 0], [MSG_DAS_Control, 0]]
+  FWD_BLACKLISTED_ADDRS = {2: [0x488, 0x27d]}
+  FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   STANDSTILL_THRESHOLD = 0
-  GAS_PRESSED_THRESHOLD = 0
-  FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   # Angle control limits
   DEG_TO_CAN = 10
@@ -33,7 +32,7 @@ class TestTeslaSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTest)
     self.safety.init_tests()
 
   def _user_brake_msg(self, brake):
-    values = {"IBST_driverBrakeApply": 2 if brake else 1}
+    values = {"IBST_driverBrakeApply": 2 if bool(brake) else 1}
     return self.packer.make_can_msg_panda("IBST_status", 0, values)
 
   def _speed_msg(self, speed):
@@ -41,7 +40,7 @@ class TestTeslaSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTest)
     return self.packer.make_can_msg_panda("DI_speed", 0, values)
 
   def _vehicle_moving_msg(self, speed: float):
-    values = {"DI_cruiseState": 3 if speed <= self.STANDSTILL_THRESHOLD else 0}
+    values = {"DI_cruiseState": 3 if speed <= 0 else 0}
     return self.packer.make_can_msg_panda("DI_state", 0, values)
 
   def _user_gas_msg(self, gas):

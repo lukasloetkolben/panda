@@ -153,7 +153,7 @@ static int tesla_fwd_hook(int bus_num, int addr) {
       block_msg = true;
     }
 
-    if (tesla_longitudinal && (addr == 0x2b9) && !tesla_stock_aeb) {
+    if (tesla_longitudinal && addr == 0x2b9 && !tesla_stock_aeb) {
       block_msg = true;
     }
 
@@ -168,7 +168,7 @@ static int tesla_fwd_hook(int bus_num, int addr) {
 static safety_config tesla_init(uint16_t param) {
   const int TESLA_FLAG_LONGITUDINAL_CONTROL = 1;
 
-  static const CanMsg TESLA_M3_Y_TX_MSGS[] = {
+  static const CanMsg TESLA_TX_MSGS[] = {
     {0x488, 0, 4},  // DAS_steeringControl
     {0x2b9, 0, 8},  // DAS_control
     {0x27D, 0, 3},  // APS_eacMonitor
@@ -180,7 +180,7 @@ static safety_config tesla_init(uint16_t param) {
 
   safety_config ret;
 
-  static RxCheck tesla_model3_y_rx_checks[] = {
+  static RxCheck tesla_rx_checks[] = {
     {.msg = {{0x2b9, 2, 8, .frequency = 25U}, { 0 }, { 0 }}},   // DAS_control
     {.msg = {{0x257, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},   // DI_speed (speed in kph)
     {.msg = {{0x370, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},  // EPAS3S_internalSAS (steering angle)
@@ -190,7 +190,7 @@ static safety_config tesla_init(uint16_t param) {
     {.msg = {{0x311, 0, 7, .frequency = 10U}, { 0 }, { 0 }}},   // UI_warning (blinkers, buckle switch & doors)
   };
 
-  ret = BUILD_SAFETY_CFG(tesla_model3_y_rx_checks, TESLA_M3_Y_TX_MSGS);
+  ret = BUILD_SAFETY_CFG(tesla_rx_checks, TESLA_TX_MSGS);
   return ret;
 }
 
