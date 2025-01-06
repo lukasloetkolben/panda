@@ -25,7 +25,7 @@ static void tesla_rx_hook(const CANPacket_t *to_push) {
 
     // Gas pressed
     if(addr == 0x118){
-      gas_pressed = (GET_BYTE(to_push, 4) != 0U);
+      gas_pressed = GET_BYTE(to_push, 4) != 0U;
     }
 
     // Brake pressed

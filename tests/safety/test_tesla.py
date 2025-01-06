@@ -9,21 +9,28 @@ MSG_DAS_steeringControl = 0x488
 MSG_APS_eacMonitor = 0x27d
 MSG_DAS_Control = 0x2b9
 
-class TestTeslaSafetyBase(common.PandaCarSafetyTest):
+class TestTeslaSafety(common.PandaCarSafetyTest):
   RELAY_MALFUNCTION_ADDRS = {0: (MSG_DAS_steeringControl, MSG_APS_eacMonitor)}
   FWD_BLACKLISTED_ADDRS = {2: [MSG_DAS_steeringControl, MSG_APS_eacMonitor]}
   TX_MSGS = [[MSG_DAS_steeringControl, 0], [MSG_APS_eacMonitor, 0], [MSG_DAS_Control, 0]]
 
   STANDSTILL_THRESHOLD = 1
-  GAS_PRESSED_THRESHOLD = 3
+  GAS_PRESSED_THRESHOLD = 0
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
-  packer: CANPackerPanda
+  # Angle control limits
+  DEG_TO_CAN = 10
 
-  @classmethod
-  def setUpClass(cls):
-    if cls.__name__ == "TestTeslaSafetyBase":
-      raise unittest.SkipTest
+  ANGLE_RATE_BP = [0., 5., 15.]
+  ANGLE_RATE_UP = [10., 1.6, .3]  # windup limit
+  ANGLE_RATE_DOWN = [10., 7.0, .8]  # unwind limit
+
+
+  def setUp(self):
+    self.packer = CANPackerPanda("tesla_model3_party")
+    self.safety = libpanda_py.libpanda
+    self.safety.set_safety_hooks(Panda.SAFETY_TESLA, 0)
+    self.safety.init_tests()
 
   def _user_brake_msg(self, brake):
     values = {"IBST_driverBrakeApply": 2 if brake else 1}
@@ -57,20 +64,6 @@ class TestTeslaSafetyBase(common.PandaCarSafetyTest):
     }
     return self.packer.make_can_msg_panda("DAS_control", bus, values)
 
-class TestTeslaStockSafety(TestTeslaSafetyBase):
-  # Angle control limits
-  DEG_TO_CAN = 10
-
-  ANGLE_RATE_BP = [0., 5., 15.]
-  ANGLE_RATE_UP = [10., 1.6, .3]  # windup limit
-  ANGLE_RATE_DOWN = [10., 7.0, .8]  # unwind limit
-
-  def setUp(self):
-    self.packer = CANPackerPanda("tesla_model3_party")
-    self.safety = libpanda_py.libpanda
-    self.safety.set_safety_hooks(Panda.SAFETY_TESLA, 0)
-    self.safety.init_tests()
-
   def _angle_cmd_msg(self, angle: float, enabled: bool):
     values = {"DAS_steeringAngleRequest": angle, "DAS_steeringControlType": 1 if enabled else 0}
     return self.packer.make_can_msg_panda("DAS_steeringControl", 0, values)
@@ -79,7 +72,7 @@ class TestTeslaStockSafety(TestTeslaSafetyBase):
     values = {"EPAS3S_internalSAS": angle}
     return self.packer.make_can_msg_panda("EPAS3S_sysStatus", 0, values)
 
-class TestTeslaLongitudinalSafetyBase(TestTeslaSafetyBase):
+class TestTeslaLongitudinalSafety(TestTeslaSafety):
   RELAY_MALFUNCTION_ADDRS = {0: (MSG_DAS_steeringControl, MSG_APS_eacMonitor, MSG_DAS_Control)}
   FWD_BLACKLISTED_ADDRS = {2: [MSG_DAS_steeringControl, MSG_APS_eacMonitor, MSG_DAS_Control]}
 
