@@ -1,36 +1,6 @@
-const SteeringLimits RIVIAN_STEERING_LIMITS = {
-  .max_steer = 350,
-  .max_rt_delta = 300,           // 8 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 200 ; 200 * 1.5 for safety pad = 300
-  .max_rt_interval = 250000,     // 250ms between real time checks
-  .max_rate_up = 8,
-  .max_rate_down = 8,
-  .driver_torque_allowance = 15,
-  .driver_torque_factor = 1,
-  .type = TorqueDriverLimited,
-};
+#pragma once
 
-
-const LongitudinalLimits RIVIAN_LONG_LIMITS = {
-  .max_accel = 200,       // 2. m/s^2
-  .min_accel = -350,       // -3.50 m/s^2
-  .inactive_accel = 0,
-};
-
-const int FLAG_RIVIAN_LONG_CONTROL = 1;
-
-const CanMsg RIVIAN_TX_MSGS[] = {
-  {0x120, 0, 8}, // ACM_lkaHbaCmd
-  {0x160, 0, 5}, // ACM_longitudinalRequest
-};
-
-RxCheck rivian_rx_checks[] = {
-  {.msg = {{0x390, 0, 7, .frequency = 100U}, { 0 }, { 0 }}},  // EPAS_AdasStatus (steering angle)
-  {.msg = {{0x38b, 0, 6, .frequency = 50U}, { 0 }, { 0 }}},   // ESPiB1 (speed)
-  {.msg = {{0x150, 0, 7, .frequency = 50U}, { 0 }, { 0 }}},   // VDM_PropStatus (gas pedal)
-  {.msg = {{0x38f, 0, 6, .frequency = 50U}, { 0 }, { 0 }}},   // iBESP2 (brakes)
-  {.msg = {{0x162, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},  // VDM_AdasSts
-  {.msg = {{0x100, 2, 8, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_Status (cruise state)
-};
+#include "safety_declarations.h"
 
 bool rivian_longitudinal = false;
 
@@ -83,6 +53,24 @@ static void rivian_rx_hook(const CANPacket_t *to_push) {
 
 
 static bool rivian_tx_hook(const CANPacket_t *to_send) {
+  const SteeringLimits RIVIAN_STEERING_LIMITS = {
+    .max_steer = 350,
+    .max_rt_delta = 300,           // 8 max rate up * 100Hz send rate * 250000 RT interval / 1000000 = 200 ; 200 * 1.5 for safety pad = 300
+    .max_rt_interval = 250000,     // 250ms between real time checks
+    .max_rate_up = 8,
+    .max_rate_down = 8,
+    .driver_torque_allowance = 15,
+    .driver_torque_factor = 1,
+    .type = TorqueDriverLimited,
+  };
+
+
+  const LongitudinalLimits RIVIAN_LONG_LIMITS = {
+    .max_accel = 200,       // 2. m/s^2
+    .min_accel = -350,       // -3.50 m/s^2
+    .inactive_accel = 0,
+  };
+
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
@@ -141,11 +129,24 @@ static int rivian_fwd_hook(int bus_num, int addr) {
 }
 
 static safety_config rivian_init(uint16_t param) {
-  rivian_longitudinal = GET_FLAG(param, FLAG_RIVIAN_LONG_CONTROL);
+  const int FLAG_RIVIAN_LONG_CONTROL = 1;
 
-  safety_config ret;
-  ret = BUILD_SAFETY_CFG(rivian_rx_checks, RIVIAN_TX_MSGS);
-  return ret;
+  const CanMsg RIVIAN_TX_MSGS[] = {
+    {0x120, 0, 8}, // ACM_lkaHbaCmd
+    {0x160, 0, 5}, // ACM_longitudinalRequest
+  };
+
+  RxCheck rivian_rx_checks[] = {
+    {.msg = {{0x390, 0, 7, .frequency = 100U}, { 0 }, { 0 }}},  // EPAS_AdasStatus (steering angle)
+    {.msg = {{0x38b, 0, 6, .frequency = 50U}, { 0 }, { 0 }}},   // ESPiB1 (speed)
+    {.msg = {{0x150, 0, 7, .frequency = 50U}, { 0 }, { 0 }}},   // VDM_PropStatus (gas pedal)
+    {.msg = {{0x38f, 0, 6, .frequency = 50U}, { 0 }, { 0 }}},   // iBESP2 (brakes)
+    {.msg = {{0x162, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},  // VDM_AdasSts
+    {.msg = {{0x100, 2, 8, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_Status (cruise state)
+  };
+
+  rivian_longitudinal = GET_FLAG(param, FLAG_RIVIAN_LONG_CONTROL);
+  return BUILD_SAFETY_CFG(rivian_rx_checks, RIVIAN_TX_MSGS);
 }
 
 const safety_hooks rivian_hooks = {
