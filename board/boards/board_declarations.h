@@ -1,3 +1,8 @@
+#pragma once
+
+#include <stdint.h>
+#include <stdbool.h>
+
 // ******************** Prototypes ********************
 typedef enum {
   BOOT_STANDBY,
@@ -19,6 +24,7 @@ typedef void (*board_set_fan_enabled)(bool enabled);
 typedef void (*board_set_siren)(bool enabled);
 typedef void (*board_set_bootkick)(BootState state);
 typedef bool (*board_read_som_gpio)(void);
+typedef void (*board_set_amp_enabled)(bool enabled);
 
 struct board {
   harness_configuration *harness_config;
@@ -44,6 +50,7 @@ struct board {
   board_set_siren set_siren;
   board_set_bootkick set_bootkick;
   board_read_som_gpio read_som_gpio;
+  board_set_amp_enabled set_amp_enabled;
 };
 
 // ******************* Definitions ********************
@@ -74,3 +81,12 @@ struct board {
 // CAN modes
 #define CAN_MODE_NORMAL 0U
 #define CAN_MODE_OBD_CAN2 1U
+
+extern struct board board_black;
+extern struct board board_dos;
+extern struct board board_uno;
+extern struct board board_tres;
+extern struct board board_grey;
+extern struct board board_white;
+extern struct board board_cuatro;
+extern struct board board_red;
