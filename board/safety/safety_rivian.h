@@ -145,9 +145,9 @@ static safety_config rivian_init(uint16_t param) {
     {.msg = {{0x100, 2, 8, .frequency = 100U}, { 0 }, { 0 }}},  // ACM_Status (cruise state)
   };
 
-#ifdef ALLOW_DEBUG
-  rivian_longitudinal = GET_FLAG(param, FLAG_RIVIAN_LONG_CONTROL);
-#endif
+  #ifdef ALLOW_DEBUG
+    rivian_longitudinal = GET_FLAG(param, FLAG_RIVIAN_LONG_CONTROL);
+  #endif
 
   return rivian_longitudinal ? BUILD_SAFETY_CFG(rivian_rx_checks, RIVIAN_LONG_TX_MSGS) : \
                                BUILD_SAFETY_CFG(rivian_rx_checks, RIVIAN_TX_MSGS);
