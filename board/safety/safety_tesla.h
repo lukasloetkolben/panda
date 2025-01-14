@@ -162,10 +162,6 @@ static int tesla_fwd_hook(int bus_num, int addr) {
       block_msg = true;
     }
 
-    if (addr == 0x39b) {
-      block_msg = true;
-    }
-
     if(!block_msg) {
       bus_fwd = 0;
     }
